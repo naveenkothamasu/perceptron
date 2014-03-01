@@ -6,7 +6,8 @@ import re;
 inputFileName = sys.argv[1];
 
 inputFile = open(inputFileName, "r");
-outputFile = open("fetures.txt","w");
+outputFile = open("features.txt","w");
+actuals = open("actuals.txt", "w");
 for line in inputFile:
 	newline = "";
 	line = line.lower();
@@ -18,11 +19,12 @@ for line in inputFile:
 			w = m.group(0);
 			tag = word[len(m.group(0)):len(word)];
 			newline += w.replace("/", " ");
-
+	actuals.write(tag+"\n");
 	outputFile.write(newline+"\n");
 
 inputFile.close();
 outputFile.close();
+actuals.close();
 print "generated features.txt"
 
 	

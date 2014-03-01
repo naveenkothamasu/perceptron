@@ -1,56 +1,94 @@
-#!/usr/bin/env python
-
 import sys;
-import re;
 
 inputFileName = sys.argv[1];
-wordTagMap = {};
-allTags = {};
+i = 0;
+iterations = 3;
+for cmd in sys.argv:
+	if cmd == '-i':
+		iterations = int(sys.argv[i+1]);	
+	i += 1;
+		
+categoryWeights = {'SPAM':{},  'HAM':{}};
+avgCategoryWeights = {'SPAM':{}, 'HAM':{}};
+inputList = [];
+wordMap = {};
 
 inputFile = open(inputFileName, "r");
 for line in inputFile:
-	line = line.replace("\n","");
-	prevWord = "START"
-	line = line.lower();
-	wordTagList = line.split(" ");	
-	for word in wordTagList:
-		if word != "":
-			m = re.search(".+/",word);	
-			sep = len(m.group(0));
-			w = word[0:sep] 
-			t = word[sep : len(word)]
-			if w in wordTagMap:	
-				if t in wordTagMap[w]['tags']:
-					wordTagMap[w]['tags'][t] += 1;
-				else:
-					wordTagMap[w]['tags'][t] = 1; 
-			else:
-				allTags[t] = 0;
-				wordTagMap[w] = { 'tags':{t:1}, 'prevWord': prevWord};
-			prevWord = w;
+	inputList += [line]
 inputFile.close();
-'''
-for word in wordTagMap:
-	print word +" ",
-	for tag in wordTagMap[word]['tags']:
-		print tag + " ",
-	print "p:",
-	print wordTagMap[word]['prevWord']
-'''
-freqWordTagMap = {};
-for word in wordTagMap:
-	mostFreqTagCount = 0;
-	mostFreqTag = "";
-	for tag in wordTagMap[word]['tags']:
-		if mostFreqTagCount < wordTagMap[word]['tags'][tag]:
-			mootFreqTagCount = wordTagMap[word]['tags'][tag];
-			mostFreqTag = tag;
-	freqWordTagMap[word] = mostFreqTag; 
-'''
-for word in freqWordTagMap:
-	print freqWordTagMap[word]+" ",
-	print "w:" + word+" ",
-	print "p:" + wordTagMap[word]['prevWord']
-'''
-for t in allTags:
-	print "s:"+t+":e";
+for line in inputList:
+	line = line.replace("\n", "");
+	wordList = line.split(" ");
+	wordList.remove(wordList[0]);
+	for word in wordList:
+		if word != " ":
+			word = word.strip();
+			if word in wordMap:
+				wordMap[word] += 1;
+			else:
+				categoryWeights["SPAM"][word] = 0;	
+				categoryWeights["HAM"][word] = 0;	
+				avgCategoryWeights["SPAM"][word] = 0;
+				avgCategoryWeights["HAM"][word] = 0;	
+				wordMap[word] = 1;
+
+def initCategoryWeights(categoryWeights):
+	for category in categoryWeights:
+		for word in categoryWeights[category]:
+			categoryWeights[category][word] = 0;
+def addCategoryWeights():
+	for category in categoryWeights:
+		for word in categoryWeights[category]:
+			avgCategoryWeights[category][word] += categoryWeights[category][word];
+
+def printWeights(categoryWeights):
+	for category in categoryWeights:
+		for word in categoryWeights[category]:
+			print str(categoryWeights[category][word])+"\t",
+		print "";
+	print "";
+currentSum = 0;
+for category in categoryWeights:
+	print "------------------------------------------------------";
+	for word in categoryWeights[category]:
+			print word+"\t",
+	print "";
+	break;
+initCategoryWeights(avgCategoryWeights);
+printWeights(categoryWeights);	
+i = 0;
+initCategoryWeights(categoryWeights);
+while i < iterations:
+	for line in inputList: 
+		line = line.replace("\n", "");
+		vector = line.split(" ");
+		wordList = line.split(" ");
+		y = vector[0];
+		vector.remove(y);
+		maximum = -1;
+		resCat = "";
+		for category in categoryWeights:
+			for word in vector:
+				currentSum += categoryWeights[category][word];
+			if(maximum <= currentSum):
+				maximum = currentSum;
+				resCat = category;
+		if resCat != y:
+			for category in categoryWeights:
+				if category != y:
+					for word in vector:	
+						categoryWeights[category][word] -= 1; 
+				else:
+					for word in vector:	
+						categoryWeights[category][word] += 1;
+		printWeights(categoryWeights);	
+	addCategoryWeights();	
+	i += 1;
+printWeights(avgCategoryWeights);
+for category in categoryWeights:
+	print "------------------------------------------------------";
+	for word in categoryWeights[category]:
+			print word+"\t",
+	print "";
+	break;
