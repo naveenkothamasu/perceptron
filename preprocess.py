@@ -54,9 +54,11 @@ mm = open("megam.train", "w");
 for word in freqWordTagMap:
 	pLen = len(wordTagMap[word]['prevWord']);
 	cLen = len(word);	
+	nLen = len(wordTagMap[word]['nextWord']);
 	mm.write( freqWordTagMap[word]+" ");
 	mm.write("prev_suf:" + wordTagMap[word]['prevWord'][pLen-2:pLen]+" ")
 	mm.write("cur_suf:" + word[cLen-2:cLen]+" ")
+	mm.write("next_suf:" + wordTagMap[word]['nextWord'][nLen-2:nLen]+" ")
 	mm.write("prev_word:" + wordTagMap[word]['prevWord']+" ")
 	mm.write("current_word:" + word+" ")
 	mm.write("next_word:" + wordTagMap[word]['nextWord'])
