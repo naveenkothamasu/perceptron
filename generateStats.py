@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 import sys;
 
 actuals = open(sys.argv[1], "r");
 results = open(sys.argv[2], "r");
-correctTags = 0;
-totalTags = 0;
+correctTags = 0.0;
+totalTags = 0.0;
 for line in actuals:
 	resultsLine = results.readline();
 	resultsLine = resultsLine.replace("\n","");
@@ -18,4 +20,4 @@ results.close();
 
 print correctTags;
 print totalTags;
-print correctTags/totalTags;
+print ("Accuracy = %f" % (correctTags/totalTags));

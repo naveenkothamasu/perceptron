@@ -3,7 +3,7 @@ import sys;
 
 inputFileName = sys.argv[1];
 i = 0;
-iterations = 3;
+iterations = 20;
 for cmd in sys.argv:
 	if cmd == '-i':
 		iterations = int(sys.argv[i+1]);	
@@ -73,7 +73,7 @@ initCategoryWeights(categoryWeights);
 while i < iterations:
 	for line in inputList: 
 		line = line.replace("\n", "");
-		line = line.lower();
+		#line = line.lower();
 		vector = line.split(" ");
 		y = vector[0];
 		vector.remove(y);
@@ -94,6 +94,7 @@ while i < iterations:
 				else:
 					for word in vector:	
 						categoryWeights[category][word] += 1;
+	#printWeights(categoryWeights);
 	addCategoryWeights();	
 	i += 1;
 '''
@@ -107,12 +108,13 @@ for category in categoryWeights:
 '''
 modelfile = open("spam.pn", "w");
 modelfile.write("TOKEN\t");
-for category in categoryWeights:
+for category in avgCategoryWeights:
 	modelfile.write(category+"\t\t");
-for category in categoryWeights:
-	for word in categoryWeights[category]:
-		modelfile.write("\n"+word+"\t");	
-		for cat in categoryWeights:
-			modelfile.write("%d\t" % categoryWeights[category][word]);
+for category in avgCategoryWeights:
+	for word in avgCategoryWeights[category]:
+		if word != "":
+			modelfile.write("\n"+word+"\t");	
+			for cat in categoryWeights:
+				modelfile.write("%f\t" % (avgCategoryWeights[cat][word]/iterations) );
 modelfile.close();
 print "Generated spam.pn"

@@ -24,7 +24,6 @@ for line in modelfile:
 	tempList.append(wordList[2]);
 	modelfileDict[wordList[0].strip()] = tempList;
 modelfile.close();
-print allCategories;
 for line in sys.stdin:
 	maxWgt = -sys.maxint;
 	curWgt = 0;
@@ -34,9 +33,9 @@ for line in sys.stdin:
 	for category in allCategories:
 		for word in wordList:
 			if word in modelfileDict:
-				curWgt += int(modelfileDict[word][i]);
+				curWgt += float (modelfileDict[word][i]);
 		if maxWgt < curWgt:
 			maxWgt = curWgt;
 			predicted = category;
 		i += 1;
-print predicted;
+	print predicted;

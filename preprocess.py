@@ -4,34 +4,98 @@ import sys;
 import re;
 
 inputFileName = sys.argv[1];
+isDev = "train"
+if len(sys.argv) > 2:
+	isDev = "dev"
 wordTagMap = {};
 allTags = {};
 
 inputFile = open(inputFileName, "r");
-nextWord = "";
+actuals = open("actuals.txt", "w");
+if isDev == "dev":
+	mm = open("dev", "w");
+else:
+	mm = open("train","w");
+nextWord = "END";
+nnext = "END";
 for line in inputFile:
 	line = line.replace("\n","");
 	prevWord = "START"
-	line = line.lower();
-	wordTagList = line.split(" ");	
-	for word in wordTagList:
+	pprev = "START"
+	#line = line.lower();
+	line = line.replace("#", "HASH");
+	wordList = line.split(" ");	
+	i = 0;
+	for word in wordList:
 		if word != "":
-			m = re.search(".+/",word);	
-			sep = len(m.group(0));
-			w = word[0:sep-1] 
-			t = word[sep : len(word)]
-			if w in wordTagMap:	
-				if t in wordTagMap[w]['tags']:
-					wordTagMap[w]['tags'][t] += 1;
-				else:
-					wordTagMap[w]['tags'][t] = 1; 
+			wLen = len(wordList)-2;
+			if i == 0:
+				prev = "START"
+				pprev = "START"
+			elif i == 1:
+				pprev = "START"
+				m = re.search(".+/", wordList[i-1])
+				sep = len(m.group(0));
+				prev = wordList[i-1][0:sep-1]
+			else:		
+				m = re.search(".+/", wordList[i-1])
+				sep = len(m.group(0));
+				prev = wordList[i-1][0:sep-1]
+				m = re.search(".+/", wordList[i-2])
+				sep = len(m.group(0));
+				pprev = wordList[i-2][0:sep-1]
+			if i == wLen:
+				nextWord = "END"
+				nnext = "END"
+			elif i == wLen-1:
+				nnext = "END"
+				m = re.search(".+/", wordList[i+1]);
+				sep = len(m.group(0));
+				nextWord = wordList[i+1][0:sep-1]
 			else:
-				allTags[t] = 0;
-				wordTagMap[w] = { 'tags':{t:1}, 'prevWord': prevWord, 'nextWord': nextWord};
-			if prevWord in wordTagMap:
-				wordTagMap[prevWord]['nextWord'] = w; 
-			prevWord = w;
+				m = re.search(".+/", wordList[i+1]);
+				sep = len(m.group(0));
+				nextWord = wordList[i+1][0:sep-1]
+				if wordList[i+2] != "":
+					m = re.search(".+/", wordList[i+2]);
+					sep = len(m.group(0));
+					nnext = wordList[i+2][0:sep-1]
+				else:
+					nnext = "END"
+			m = re.search(".+/", word);
+			sep = len(m.group(0));
+			w = word[0:sep-1];
+			t = word[sep: len(word)]	
+			pLen = len(prevWord);
+			ppLen = len(pprev);
+			cLen = len(w);	
+			nLen = len(nextWord);
+			nnLen = len(nnext);
+			if isDev == "dev":
+				mm.write("? ");	
+				actuals.write(t+"\n");
+			else:
+				mm.write(t+" ");
+			mm.write("csuf:" + w[cLen-2:cLen]+" ")
+			#mm.write("psuf:" + prev[pLen-2:pLen]+" ")
+			#mm.write("nsuf:" + nextWord[nLen-2:nLen]+" ")
+			#mm.write("nnsuf:" + nnext[nnLen-2:nnLen]+" ")
+			#mm.write("pw2:" + pprev+" ")
+			mm.write("pw:" + prev+" ")
+			mm.write("cw:" + w+" ")
+			mm.write("nw:" + nextWord+" ")
+			#mm.write("nw2:" + nnext)
+			mm.write("\n");
+			i += 1;
+		
 inputFile.close();
+mm.close();
+actuals.close();
+if isDev == "dev":
+	print "Generated dev"
+	print "Generated actuals.txt"
+else:
+	print "Generated train"
 '''
 for word in wordTagMap:
 	print word +" ",
@@ -39,7 +103,7 @@ for word in wordTagMap:
 		print tag + " ",
 	print "p:",
 	print wordTagMap[word]['prevWord']
-'''
+
 freqWordTagMap = {};
 for word in wordTagMap:
 	mostFreqTagCount = 0;
@@ -53,19 +117,23 @@ for word in wordTagMap:
 mm = open("megam.train", "w");
 for word in freqWordTagMap:
 	pLen = len(wordTagMap[word]['prevWord']);
+	ppLen = len(wordTagMap[word]['pprev']);
 	cLen = len(word);	
 	nLen = len(wordTagMap[word]['nextWord']);
+	nnLen = len(wordTagMap[word]['nnext']);
 	mm.write( freqWordTagMap[word]+" ");
-	mm.write("prev_suf:" + wordTagMap[word]['prevWord'][pLen-2:pLen]+" ")
-	mm.write("cur_suf:" + word[cLen-2:cLen]+" ")
-	mm.write("next_suf:" + wordTagMap[word]['nextWord'][nLen-2:nLen]+" ")
-	mm.write("prev_word:" + wordTagMap[word]['prevWord']+" ")
-	mm.write("current_word:" + word+" ")
-	mm.write("next_word:" + wordTagMap[word]['nextWord'])
+	mm.write("csuf:" + word[cLen-2:cLen]+" ")
+	mm.write("psuf:" + wordTagMap[word]['prevWord'][pLen-2:pLen]+" ")
+	mm.write("nsuf:" + wordTagMap[word]['nextWord'][nLen-2:nLen]+" ")
+	mm.write("nnsuf:" + wordTagMap[word]['nnext'][nnLen-2:nnLen]+" ")
+	mm.write("pw2:" + wordTagMap[word]['pprev']+" ")
+	mm.write("pw:" + wordTagMap[word]['prevWord']+" ")
+	mm.write("cw:" + word+" ")
+	mm.write("nw:" + wordTagMap[word]['nextWord']+" ")
+	mm.write("nw2:" + wordTagMap[word]['nnext'])
 	mm.write("\n");
 mm.close();
 print "Generated megam.train"
-'''
 i=1;
 for t in allTags:
 	print "s:"+t+":e";

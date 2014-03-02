@@ -8,11 +8,15 @@ wordTagMap = {};
 allTags = {};
 
 inputFile = open(inputFileName, "r");
-nextWord = "";
+actuals = open("actuals.dev","w");
+mm = open("megam.dev", "w");
+nextWord = "END";
+nnext = "END";
 for line in inputFile:
 	line = line.replace("\n","");
 	line = line.replace("#", "HASH");
 	prevWord = "START"
+	pprev = "START"
 	line = line.lower();
 	wordTagList = line.split(" ");	
 	for word in wordTagList:
@@ -28,11 +32,34 @@ for line in inputFile:
 					wordTagMap[w]['tags'][t] = 1; 
 			else:
 				allTags[t] = 0;
-				wordTagMap[w] = { 'tags':{t:1}, 'prevWord': prevWord, 'nextWord': nextWord};
+				wordTagMap[w] = { 'tags':{t:1}, 'prevWord': prevWord, 'nextWord': nextWord, 'pprev': pprev, 'nnext': nnext};
 			if prevWord in wordTagMap:
 				wordTagMap[prevWord]['nextWord'] = w; 
+			if pprev in wordTagMap:
+				wordTagMap[pprev]['nnext'] = w;
+			pprev = prevWord;
 			prevWord = w;
+			pLen = len(prevWord);
+			cLen = len(w);	
+			nLen = len(wordTagMap[w]['nextWord']);
+			nnLen = len(wordTagMap[w]['nnext']);
+			actuals.write( t+"\n");
+			mm.write("? ");
+			mm.write("csuf:" + w[cLen-2:cLen]+" ")
+			mm.write("psuf:" + wordTagMap[w]['prevWord'][pLen-2:pLen]+" ")
+			mm.write("nsuf:" + wordTagMap[w]['nextWord'][nLen-2:nLen]+" ")
+			mm.write("nnsuf:" + wordTagMap[w]['nnext'][nnLen-2:nnLen]+" ")
+			mm.write("pw2:" + wordTagMap[w]['pprev']+" ")
+			mm.write("pw:" + wordTagMap[w]['prevWord']+" ")
+			mm.write("cw:" + w+" ")
+			mm.write("nw:" + wordTagMap[w]['nextWord']+" ")
+			mm.write("nw2:" + wordTagMap[w]['nnext'])
+			mm.write("\n");
 inputFile.close();
+mm.close();
+actuals.close();
+print "Generated megam.dev"
+print "Generated actuals.dev"
 '''
 for word in wordTagMap:
 	print word +" ",
@@ -40,7 +67,6 @@ for word in wordTagMap:
 		print tag + " ",
 	print "p:",
 	print wordTagMap[word]['prevWord']
-'''
 freqWordTagMap = {};
 for word in wordTagMap:
 	mostFreqTagCount = 0;
@@ -55,18 +81,24 @@ mm = open("megam.dev", "w");
 for word in freqWordTagMap:
 	pLen = len(wordTagMap[word]['prevWord']);
 	cLen = len(word);	
+	nLen = len(wordTagMap[word]['nextWord']);
+	nnLen = len(wordTagMap[word]['nnext']);
 	actuals.write( freqWordTagMap[word]+"\n");
-	mm.write("prev_suf:" + wordTagMap[word]['prevWord'][pLen-2:pLen]+" ")
-	mm.write("cur_suf:" + word[cLen-2:cLen]+" ")
-	mm.write("prev_word:" + wordTagMap[word]['prevWord']+" ")
-	mm.write("current_word:" + word+" ")
-	mm.write("next_word:" + wordTagMap[word]['nextWord'])
+	mm.write("? ");
+	mm.write("csuf:" + word[cLen-2:cLen]+" ")
+	mm.write("psuf:" + wordTagMap[word]['prevWord'][pLen-2:pLen]+" ")
+	mm.write("nsuf:" + wordTagMap[word]['nextWord'][nLen-2:nLen]+" ")
+	mm.write("nnsuf:" + wordTagMap[word]['nnext'][nnLen-2:nnLen]+" ")
+	mm.write("pw2:" + wordTagMap[word]['pprev']+" ")
+	mm.write("pw:" + wordTagMap[word]['prevWord']+" ")
+	mm.write("cw:" + word+" ")
+	mm.write("nw:" + wordTagMap[word]['nextWord']+" ")
+	mm.write("nw2:" + wordTagMap[word]['nnext'])
 	mm.write("\n");
 mm.close();
 actuals.close();
 print "Generated megam.dev"
 print "Generated actuals.dev"
-'''
 i=1;
 for t in allTags:
 	print "s:"+t+":e";
